@@ -124,35 +124,45 @@ public class CtSph implements Sph {
      */
     private Entry entryWithPriority(ResourceWrapper resourceWrapper, int count, boolean prioritized, Object... args)
         throws BlockException {
+        // 从ThreadLocal中获取Context
+        // 一个请求会占用一个线程，一个线程会绑定一个context
         Context context = ContextUtil.getContext();
+        // 若context是 NullContext类型，则表示当前系统中的context数量已经超过阈值
+        // 即访问的请求的数量已经超出了阈值，此时直接返回一个无需做规则检测的资源操作对象
         if (context instanceof NullContext) {
             // The {@link NullContext} indicates that the amount of context has exceeded the threshold,
             // so here init the entry only. No rule checking will be done.
             return new CtEntry(resourceWrapper, null, context);
         }
 
+        // 当前线程中没有绑定context，则创建一个context并将其放入到Threadlocal
         if (context == null) {
             // Using default context.
             context = InternalContextUtil.internalEnter(Constants.CONTEXT_DEFAULT_NAME);
         }
 
         // Global switch is close, no rule checking will do.
+        // 若全局开关是关闭的，直接返回一个无需做规则检测的资源操作对象
         if (!Constants.ON) {
             return new CtEntry(resourceWrapper, null, context);
         }
 
+        // 查找SlotChain
         ProcessorSlot<Object> chain = lookProcessChain(resourceWrapper);
 
         /*
          * Means amount of resources (slot chain) exceeds {@link Constants.MAX_SLOT_CHAIN_SIZE},
          * so no rule checking will be done.
          */
+        // 若没有知道chain，则意味着chain数量超出了阈值
         if (chain == null) {
             return new CtEntry(resourceWrapper, null, context);
         }
 
+        // 创建一个资源操作对象
         Entry e = new CtEntry(resourceWrapper, chain, context);
         try {
+            // 对资源进行操作
             chain.entry(context, resourceWrapper, null, count, prioritized, args);
         } catch (BlockException e1) {
             e.exit(count, args);
