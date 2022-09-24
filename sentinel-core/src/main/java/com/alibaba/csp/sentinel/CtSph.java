@@ -114,6 +114,14 @@ public class CtSph implements Sph {
         return asyncEntryWithPriorityInternal(resourceWrapper, count, false, args);
     }
 
+    /**
+     * @param resourceWrapper
+     * @param count 默认为1
+     * @param prioritized 默认为false
+     * @param args
+     * @return
+     * @throws BlockException
+     */
     private Entry entryWithPriority(ResourceWrapper resourceWrapper, int count, boolean prioritized, Object... args)
         throws BlockException {
         Context context = ContextUtil.getContext();
@@ -337,13 +345,19 @@ public class CtSph implements Sph {
     @Override
     public Entry entryWithType(String name, int resourceType, EntryType entryType, int count, Object[] args)
         throws BlockException {
+        // count 参数：表示当前请求可以增加多少个计数
+        // 注意 第5个参数为false
         return entryWithType(name, resourceType, entryType, count, false, args);
     }
 
     @Override
     public Entry entryWithType(String name, int resourceType, EntryType entryType, int count, boolean prioritized,
                                Object[] args) throws BlockException {
+        // 将信息封装为一个资源对象
         StringResourceWrapper resource = new StringResourceWrapper(name, entryType, resourceType);
+        // 返回一个资源操作对象entry
+        // prioritized 为true 表示当前访问必须等待"根据其优先级计算出的时间"后才通过
+        // prioritized 为 false 则当前请求无需等待
         return entryWithPriority(resource, count, prioritized, args);
     }
 

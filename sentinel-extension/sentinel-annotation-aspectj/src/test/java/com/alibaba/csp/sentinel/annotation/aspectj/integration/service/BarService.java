@@ -33,6 +33,7 @@ public class BarService {
         return "Hello for " + i;
     }
 
+
     @SentinelResource()
     public String doSomething(int i) {
         if (i == 5758) {
