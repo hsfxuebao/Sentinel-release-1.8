@@ -137,7 +137,7 @@ public class CtSph implements Sph {
 
         // 当前线程中没有绑定context，则创建一个context并将其放入到Threadlocal
         if (context == null) {
-            // Using default context.
+            // todo Using default context.
             context = InternalContextUtil.internalEnter(Constants.CONTEXT_DEFAULT_NAME);
         }
 
@@ -147,7 +147,7 @@ public class CtSph implements Sph {
             return new CtEntry(resourceWrapper, null, context);
         }
 
-        // 查找SlotChain
+        // todo 查找SlotChain
         ProcessorSlot<Object> chain = lookProcessChain(resourceWrapper);
 
         /*
@@ -162,7 +162,7 @@ public class CtSph implements Sph {
         // 创建一个资源操作对象
         Entry e = new CtEntry(resourceWrapper, chain, context);
         try {
-            // 对资源进行操作
+            // todo 对资源进行操作
             chain.entry(context, resourceWrapper, null, count, prioritized, args);
         } catch (BlockException e1) {
             e.exit(count, args);
@@ -210,17 +210,23 @@ public class CtSph implements Sph {
      * @return {@link ProcessorSlotChain} of the resource
      */
     ProcessorSlot<Object> lookProcessChain(ResourceWrapper resourceWrapper) {
+        // 缓存map的key为资源 value为其相关的SlotChain
         ProcessorSlotChain chain = chainMap.get(resourceWrapper);
+        // DCL
+        // 若缓存中没有相关的SlotChain 则创建一个并放入到缓存中
         if (chain == null) {
             synchronized (LOCK) {
                 chain = chainMap.get(resourceWrapper);
                 if (chain == null) {
                     // Entry size limit.
+                    // 缓存map的size 大于 chain数量的最大阈值，则直接返回null,不在创建新的chain
                     if (chainMap.size() >= Constants.MAX_SLOT_CHAIN_SIZE) {
                         return null;
                     }
 
+                    // todo 创建新的chain
                     chain = SlotChainProvider.newSlotChain();
+                    // 防止 迭代稳定性问题
                     Map<ResourceWrapper, ProcessorSlotChain> newMap = new HashMap<ResourceWrapper, ProcessorSlotChain>(
                         chainMap.size() + 1);
                     newMap.putAll(chainMap);

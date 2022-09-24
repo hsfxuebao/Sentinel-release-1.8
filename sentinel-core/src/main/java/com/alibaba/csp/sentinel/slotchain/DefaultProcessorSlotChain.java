@@ -21,6 +21,7 @@ import com.alibaba.csp.sentinel.context.Context;
  * @author qinan.qn
  * @author jialiang.linjl
  */
+// 这是一个单向链表，默认包含一个接节点，且有两个指针first 和end同时指向这个节点
 public class DefaultProcessorSlotChain extends ProcessorSlotChain {
 
     AbstractLinkedProcessorSlot<?> first = new AbstractLinkedProcessorSlot<Object>() {
