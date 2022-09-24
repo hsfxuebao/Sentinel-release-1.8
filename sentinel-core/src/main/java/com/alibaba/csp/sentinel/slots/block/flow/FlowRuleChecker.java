@@ -46,9 +46,12 @@ public class FlowRuleChecker {
         if (ruleProvider == null || resource == null) {
             return;
         }
+        // todo 获取到指定资源的所有流控规则
         Collection<FlowRule> rules = ruleProvider.apply(resource.getName());
         if (rules != null) {
+            // 逐个应用流控规则，若无法通过则抛出异常，后续规则不再应用
             for (FlowRule rule : rules) {
+                // todo
                 if (!canPassCheck(rule, context, node, count, prioritized)) {
                     throw new FlowException(rule.getLimitApp(), rule);
                 }
@@ -63,25 +66,32 @@ public class FlowRuleChecker {
 
     public boolean canPassCheck(/*@NonNull*/ FlowRule rule, Context context, DefaultNode node, int acquireCount,
                                                     boolean prioritized) {
+        // 若规则中获取要限定的来源
         String limitApp = rule.getLimitApp();
+        // 若限流的来源为null，则请求直接通过
         if (limitApp == null) {
             return true;
         }
 
+        // 使用规则处理集群流控
         if (rule.isClusterMode()) {
             return passClusterCheck(rule, context, node, acquireCount, prioritized);
         }
 
+        // todo 使用规则处理 单机 流控
         return passLocalCheck(rule, context, node, acquireCount, prioritized);
     }
 
     private static boolean passLocalCheck(FlowRule rule, Context context, DefaultNode node, int acquireCount,
                                           boolean prioritized) {
+        // 通过规则形成 选择出的规则node
         Node selectedNode = selectNodeByRequesterAndStrategy(rule, context, node);
+        // 若没有选择出node，说明没有规则，则直接返回true,表示通过检测
         if (selectedNode == null) {
             return true;
         }
 
+        // todo 使用规则进行逐项检测
         return rule.getRater().canPass(selectedNode, acquireCount, prioritized);
     }
 

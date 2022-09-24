@@ -24,7 +24,7 @@ package com.alibaba.csp.sentinel.slots.block;
 public abstract class AbstractRule implements Rule {
 
     /**
-     * Resource name.
+     * Resource name. 资源名称
      */
     private String resource;
 
@@ -37,6 +37,7 @@ public abstract class AbstractRule implements Rule {
      * For authority rules, multiple origin name can be separated with comma (',').
      * </p>
      */
+    // 请求来源 默认
     private String limitApp;
 
     @Override
