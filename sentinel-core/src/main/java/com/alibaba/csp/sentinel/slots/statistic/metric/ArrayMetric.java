@@ -33,8 +33,10 @@ import com.alibaba.csp.sentinel.util.function.Predicate;
  * @author jialiang.linjl
  * @author Eric Zhao
  */
+// 这是一个使用数组保存数据的计量器类
 public class ArrayMetric implements Metric {
 
+    // 数据就保存在data中
     private final LeapArray<MetricBucket> data;
 
     public ArrayMetric(int sampleCount, int intervalInMs) {
@@ -106,10 +108,13 @@ public class ArrayMetric implements Metric {
 
     @Override
     public long pass() {
+        // 更新array中当前时间点所在样本窗口实例中的数据
         data.currentWindow();
         long pass = 0;
+        // todo 将当前时间窗口中的所有样本窗口统计的value记录到result中
         List<MetricBucket> list = data.values();
 
+        // 将list中所有pass维度的统计数据取出来并求和
         for (MetricBucket window : list) {
             pass += window.pass();
         }
@@ -241,7 +246,9 @@ public class ArrayMetric implements Metric {
 
     @Override
     public void addPass(int count) {
+        // 获取当前时间点所在的样本窗口
         WindowWrap<MetricBucket> wrap = data.currentWindow();
+        // 将当前请求的计数量 添加到当前样本窗口的统计数据中
         wrap.value().addPass(count);
     }
 

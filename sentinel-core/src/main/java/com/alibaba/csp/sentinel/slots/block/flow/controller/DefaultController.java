@@ -78,7 +78,7 @@ public class DefaultController implements TrafficShapingController {
             return DEFAULT_AVG_USED_TOKENS;
         }
         // 若阈值类型为线程数，则直接返回当前的线程数量
-        // 若阈值类型为QPS，则直接返回当前的QPS
+        // todo 若阈值类型为QPS，则直接返回当前的QPS
         return grade == RuleConstant.FLOW_GRADE_THREAD ? node.curThreadNum() : (int)(node.passQps());
     }
 
