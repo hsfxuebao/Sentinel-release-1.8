@@ -29,9 +29,10 @@ import java.util.concurrent.atomic.LongAdder;
 public class MetricBucket {
 
     // 统计的数据存放在这里，数组
-    // 统计的数据为多维度的，这些维度的类型在MetricEvent枚举中
+    // 统计的数据为多维度的，这些维度的类型在MetricEvent枚举中，比如异常总数、请求总数等
     private final LongAdder[] counters;
 
+    // 这段事件内的最小耗时
     private volatile long minRt;
 
     public MetricBucket() {

@@ -81,22 +81,27 @@ public class ClusterBuilderSlot extends AbstractLinkedProcessorSlot<DefaultNode>
             synchronized (lock) {
                 if (clusterNode == null) {
                     // Create the cluster node.
+                    // 创建 cluster node
                     clusterNode = new ClusterNode(resourceWrapper.getName(), resourceWrapper.getResourceType());
                     HashMap<ResourceWrapper, ClusterNode> newMap = new HashMap<>(Math.max(clusterNodeMap.size(), 16));
                     newMap.putAll(clusterNodeMap);
+                    ///node.getId() 这个其实是resource
                     newMap.put(node.getId(), clusterNode);
 
                     clusterNodeMap = newMap;
                 }
             }
         }
+        // 设置clusterNode
         node.setClusterNode(clusterNode);
 
         /*
          * if context origin is set, we should get or create a new {@link Node} of
          * the specific origin.
+         * 此上下文的起源(通常表示不同的调用者，例如服务使用者名称或起源IP)。
          */
         if (!"".equals(context.getOrigin())) {
+            //创建originNode  然后在当前entry 甚至originNode
             Node originNode = node.getClusterNode().getOrCreateOriginNode(context.getOrigin());
             context.getCurEntry().setOriginNode(originNode);
         }

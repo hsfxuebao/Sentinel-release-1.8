@@ -43,6 +43,11 @@ public class ArrayMetric implements Metric {
         this.data = new OccupiableBucketLeapArray(sampleCount, intervalInMs);
     }
 
+    /**
+     * @param sampleCount 在一个采集间隔中抽样的个数，默认为 2，即一个采集间隔中会包含两个相等的区间，一个区间就是一个窗口。
+     * @param intervalInMs 表示一个采集的时间间隔，即滑动窗口的总时间，例如 1 分钟。
+     * @param enableOccupy 是否允许抢占，即当前时间戳已经达到限制后，是否可以占用下一个时间窗口的容量。
+     */
     public ArrayMetric(int sampleCount, int intervalInMs, boolean enableOccupy) {
         if (enableOccupy) {
             this.data = new OccupiableBucketLeapArray(sampleCount, intervalInMs);

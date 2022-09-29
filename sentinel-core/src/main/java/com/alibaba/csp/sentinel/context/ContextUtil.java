@@ -120,7 +120,7 @@ public class ContextUtil {
     protected static Context trueEnter(String name, String origin) {
         // 尝试从ThreadLocal中获取context
         Context context = contextHolder.get();
-        // 若Threadlocal中没有，则尝试从缓存map中获取
+        // 若ThreadLocal中没有，则尝试从缓存map中获取
         if (context == null) {
             // 缓存map的key为context名称，value为EntranceNode
             Map<String, DefaultNode> localCacheNameMap = contextNameNodeMap;

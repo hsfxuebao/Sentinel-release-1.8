@@ -135,7 +135,7 @@ public class CtSph implements Sph {
             return new CtEntry(resourceWrapper, null, context);
         }
 
-        // 当前线程中没有绑定context，则创建一个context并将其放入到Threadlocal
+        // 当前线程中没有绑定context，则创建一个context并将其放入到ThreadLocal
         if (context == null) {
             // todo Using default context.
             context = InternalContextUtil.internalEnter(Constants.CONTEXT_DEFAULT_NAME);

@@ -68,7 +68,8 @@ public class FlowRuleChecker {
                                                     boolean prioritized) {
         // 若规则中获取要限定的来源
         String limitApp = rule.getLimitApp();
-        // 若限流的来源为null，则请求直接通过
+        // 若限流的来源为null，则请求直接通过, 如果限流规则没有配置针对来源也就是limitApp为空，则表示不做限制返回true。
+        // Sentinel默认配置该值为defualt。
         if (limitApp == null) {
             return true;
         }
@@ -84,13 +85,14 @@ public class FlowRuleChecker {
 
     private static boolean passLocalCheck(FlowRule rule, Context context, DefaultNode node, int acquireCount,
                                           boolean prioritized) {
-        // 通过规则形成 选择出的规则node
+        // 通过规则形成 选择出的规则node, 根据流控策略选择一个合适的Node。如果未找到则返回true。
         Node selectedNode = selectNodeByRequesterAndStrategy(rule, context, node);
         // 若没有选择出node，说明没有规则，则直接返回true,表示通过检测
         if (selectedNode == null) {
             return true;
         }
 
+        // 调用Rule规则中配置的限流控制器来判断是否符合限流规则，最终调用的是TrafficShapingController#canPass方法。
         // todo 使用规则进行逐项检测
         return rule.getRater().canPass(selectedNode, acquireCount, prioritized);
     }
@@ -128,6 +130,7 @@ public class FlowRuleChecker {
         int strategy = rule.getStrategy();
         String origin = context.getOrigin();
 
+        // 如果限流规则配置的针对的调用方与当前请求实际调用来源匹配（并且不是 default、other)时的处理逻辑
         if (limitApp.equals(origin) && filterOrigin(origin)) {
             if (strategy == RuleConstant.STRATEGY_DIRECT) {
                 // Matches limit origin, return origin statistic node.
@@ -135,6 +138,7 @@ public class FlowRuleChecker {
             }
 
             return selectReferenceNode(rule, context, node);
+        // 如果流控规则针对的调用方(limitApp) 配置的为 default，表示对所有的调用源都生效，其获取实时统计节点(Node)的处理逻辑
         } else if (RuleConstant.LIMIT_APP_DEFAULT.equals(limitApp)) {
             if (strategy == RuleConstant.STRATEGY_DIRECT) {
                 // Return the cluster node.
@@ -142,6 +146,8 @@ public class FlowRuleChecker {
             }
 
             return selectReferenceNode(rule, context, node);
+        // 如果流控规则针对的调用方为(other)，此时需要判断是否有针对当前的流控规则，只要存在，则这条规则对当前资源“失效”，
+        // 如果针对该资源没有配置其他额外的流控规则，则获取实时统计节点(Node)的处理逻辑为
         } else if (RuleConstant.LIMIT_APP_OTHER.equals(limitApp)
             && FlowRuleManager.isOtherOrigin(origin, rule.getResource())) {
             if (strategy == RuleConstant.STRATEGY_DIRECT) {

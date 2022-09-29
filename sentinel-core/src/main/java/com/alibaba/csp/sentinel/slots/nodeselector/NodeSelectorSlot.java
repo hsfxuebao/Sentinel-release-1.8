@@ -153,6 +153,7 @@ public class NodeSelectorSlot extends AbstractLinkedProcessorSlot<Object> {
          * The answer is all {@link DefaultNode}s with same resource name share one
          * {@link ClusterNode}. See {@link ClusterBuilderSlot} for detail.
          */
+        // 一个context name 对应一个defaultNode 对象
         // 从缓存中获取DefaultNode
         DefaultNode node = map.get(context.getName());
         // DCL
@@ -174,6 +175,7 @@ public class NodeSelectorSlot extends AbstractLinkedProcessorSlot<Object> {
             }
         }
 
+        // 设置当前node
         context.setCurNode(node);
         // todo 触发下一个节点
         fireEntry(context, resourceWrapper, node, count, prioritized, args);
@@ -181,6 +183,7 @@ public class NodeSelectorSlot extends AbstractLinkedProcessorSlot<Object> {
 
     @Override
     public void exit(Context context, ResourceWrapper resourceWrapper, int count, Object... args) {
+        // 没干啥操作，接着往后调用
         fireExit(context, resourceWrapper, count, args);
     }
 }

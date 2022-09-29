@@ -142,12 +142,14 @@ public class StatisticSlot extends AbstractLinkedProcessorSlot<DefaultNode> {
             // Record response time and success count.
             recordCompleteFor(node, count, rt, error);
             recordCompleteFor(context.getCurEntry().getOriginNode(), count, rt, error);
+            // 集群node添加rt与减少并发线程数
             if (resourceWrapper.getEntryType() == EntryType.IN) {
                 recordCompleteFor(Constants.ENTRY_NODE, count, rt, error);
             }
         }
 
         // Handle exit event with registered exit callback handlers.
+        // 回调
         Collection<ProcessorSlotExitCallback> exitCallbacks = StatisticSlotCallbackRegistry.getExitCallbacks();
         for (ProcessorSlotExitCallback handler : exitCallbacks) {
             handler.onExit(context, resourceWrapper, count, args);
@@ -161,9 +163,11 @@ public class StatisticSlot extends AbstractLinkedProcessorSlot<DefaultNode> {
         if (node == null) {
             return;
         }
+        // 记录rt（响应时间）
         node.addRtAndSuccess(rt, batchCount);
+        // 减少并发线程数
         node.decreaseThreadNum();
-
+        // 阻塞数+1
         if (error != null && !(error instanceof BlockException)) {
             node.increaseExceptionQps(batchCount);
         }

@@ -126,6 +126,7 @@ public abstract class AbstractSentinelAspectSupport {
         throws Throwable {
 
         // Execute block handler if configured.
+        // 获取 注解中 阻塞异常后 需要执行的方法
         Method blockHandlerMethod = extractBlockHandlerMethod(pjp, annotation.blockHandler(),
             annotation.blockHandlerClass());
         if (blockHandlerMethod != null) {
@@ -133,6 +134,7 @@ public abstract class AbstractSentinelAspectSupport {
             // Construct args.
             Object[] args = Arrays.copyOf(originArgs, originArgs.length + 1);
             args[args.length - 1] = ex;
+            // 执行阻塞后的方法
             return invoke(pjp, blockHandlerMethod, args);
         }
 

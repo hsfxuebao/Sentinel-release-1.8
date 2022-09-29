@@ -49,6 +49,8 @@ public class WarmUpRateLimiterController extends WarmUpController {
         long restToken = storedTokens.get();
         long costTime = 0;
         long expectedTime = 0;
+
+        // 和 RateLimiterController 比较，区别主要就是这块代码
         if (restToken >= warningToken) {
             long aboveToken = restToken - warningToken;
 
