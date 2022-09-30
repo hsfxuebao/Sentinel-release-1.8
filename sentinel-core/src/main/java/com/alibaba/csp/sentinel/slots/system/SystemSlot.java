@@ -35,7 +35,9 @@ public class SystemSlot extends AbstractLinkedProcessorSlot<DefaultNode> {
     @Override
     public void entry(Context context, ResourceWrapper resourceWrapper, DefaultNode node, int count,
                       boolean prioritized, Object... args) throws Throwable {
+        // todo entry方法中调用SystemRuleManager.checkSystem方法，这里是自适应限流的关键点
         SystemRuleManager.checkSystem(resourceWrapper, count);
+        // 在职责链上继续调用下一个slot节点。
         fireEntry(context, resourceWrapper, node, count, prioritized, args);
     }
 

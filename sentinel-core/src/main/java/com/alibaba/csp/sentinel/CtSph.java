@@ -271,7 +271,7 @@ public class CtSph implements Sph {
      */
     private final static class InternalContextUtil extends ContextUtil {
         static Context internalEnter(String name) {
-            return trueEnter(name, "");
+            return trueEnter(name, "testAuthoritySlot");
         }
 
         static Context internalEnter(String name, String origin) {

@@ -65,13 +65,17 @@ import com.alibaba.csp.sentinel.slots.block.BlockException;
  */
 public final class SystemRuleManager {
 
+    //系统最大负载
     private static volatile double highestSystemLoad = Double.MAX_VALUE;
     /**
      * cpu usage, between [0, 1]
      */
+    //CPU使用率，介于[0,1]之间
     private static volatile double highestCpuUsage = Double.MAX_VALUE;
     private static volatile double qps = Double.MAX_VALUE;
+    //最大延迟
     private static volatile long maxRt = Long.MAX_VALUE;
+    //最大线程数
     private static volatile long maxThread = Long.MAX_VALUE;
     /**
      * mark whether the threshold are set by user.
@@ -84,7 +88,10 @@ public final class SystemRuleManager {
 
     private static AtomicBoolean checkSystemStatus = new AtomicBoolean(false);
 
+
+    //采集系统cpu load、cpu使用率的实现。
     private static SystemStatusListener statusListener = null;
+    //观察者，当systemRule配置发生变更时，会通知该Listener
     private final static SystemPropertyListener listener = new SystemPropertyListener();
     private static SentinelProperty<List<SystemRule>> currentProperty = new DynamicSentinelProperty<List<SystemRule>>();
 
@@ -96,6 +103,7 @@ public final class SystemRuleManager {
         checkSystemStatus.set(false);
         statusListener = new SystemStatusListener();
         scheduler.scheduleAtFixedRate(statusListener, 0, 1, TimeUnit.SECONDS);
+        //添加观察者
         currentProperty.addListener(listener);
     }
 
@@ -184,10 +192,12 @@ public final class SystemRuleManager {
 
         @Override
         public synchronized void configUpdate(List<SystemRule> rules) {
+            //todo 恢复到默认状态
             restoreSetting();
             // systemRules = rules;
             if (rules != null && rules.size() >= 1) {
                 for (SystemRule rule : rules) {
+                    // todo 加载配置
                     loadSystemConf(rule);
                 }
             } else {
@@ -208,6 +218,7 @@ public final class SystemRuleManager {
                 qps));
         }
 
+        //重置配置信息
         protected void restoreSetting() {
             checkSystemStatus.set(false);
 
@@ -288,49 +299,62 @@ public final class SystemRuleManager {
      * @throws BlockException when any system rule's threshold is exceeded.
      */
     public static void checkSystem(ResourceWrapper resourceWrapper, int count) throws BlockException {
+        // 检查资源是否为空，如果为空直接返回
         if (resourceWrapper == null) {
             return;
         }
         // Ensure the checking switch is on.
+        // 判断系统自适应限流是否开启，未开启直接返回。
         if (!checkSystemStatus.get()) {
             return;
         }
 
         // for inbound traffic only
+        // 判断资源的流量是否为入口流量，Sentinel系统自适应限流只对入口流量生效
         if (resourceWrapper.getEntryType() != EntryType.IN) {
             return;
         }
 
         // total qps
+        // 从Constants.ENTRY_NODE获取当前qps，如果当前qps大于SystemRule配置的阈值，直接抛SystemBlockException异常
         double currentQps = Constants.ENTRY_NODE == null ? 0.0 : Constants.ENTRY_NODE.passQps();
         if (currentQps + count > qps) {
             throw new SystemBlockException(resourceWrapper.getName(), "qps");
         }
 
         // total thread
+        // 从Constants.ENTRY_NODE获取当前thread，如果当前thread大于SystemRule配置的阈值，直接抛SystemBlockException 异常
         int currentThread = Constants.ENTRY_NODE == null ? 0 : Constants.ENTRY_NODE.curThreadNum();
         if (currentThread > maxThread) {
             throw new SystemBlockException(resourceWrapper.getName(), "thread");
         }
 
+        // 从Constants.ENTRY_NODE获取当前avgRT，如果当前avgRT大于SystemRule配置的阈值，直接抛SystemBlockException异常
         double rt = Constants.ENTRY_NODE == null ? 0 : Constants.ENTRY_NODE.avgRt();
         if (rt > maxRt) {
             throw new SystemBlockException(resourceWrapper.getName(), "rt");
         }
 
         // load. BBR algorithm.
+        // 进行bbr算法校验
+        // 校验系统负载开关是否打开，当前系统load是否大于配置的系统load，如果都满足则继续校验
         if (highestSystemLoadIsSet && getCurrentSystemAvgLoad() > highestSystemLoad) {
+            // 调用checkBbr方法，之前我们有说过系统通过流量：T ≈ QPS * Avg(RT)时
+            // 我们可以认为系统的处理能力和允许进入的请求个数达到了平衡，所以checkBbr方法计算的公式以秒为单位：T=QPS*RT/1000。
+            // 如果当前线程数大于T，则进行拦截
             if (!checkBbr(currentThread)) {
                 throw new SystemBlockException(resourceWrapper.getName(), "load");
             }
         }
 
         // cpu usage
+        // 判断当前CPU使用率是否大于SystemRule配置的阈值，如果是则抛出SystemBlockException异常
         if (highestCpuUsageIsSet && getCurrentCpuUsage() > highestCpuUsage) {
             throw new SystemBlockException(resourceWrapper.getName(), "cpu");
         }
     }
 
+    //bbr算法
     private static boolean checkBbr(int currentThread) {
         if (currentThread > 1 &&
             currentThread > Constants.ENTRY_NODE.maxSuccessQps() * Constants.ENTRY_NODE.minRt() / 1000) {

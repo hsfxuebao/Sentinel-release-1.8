@@ -15,6 +15,7 @@
  */
 package com.alibaba.csp.sentinel.demo.annotation.aop.service;
 
+import com.alibaba.csp.sentinel.EntryType;
 import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import com.alibaba.csp.sentinel.slots.block.BlockException;
 
@@ -33,7 +34,7 @@ public class TestServiceImpl implements TestService {
     }
 
     @Override
-    @SentinelResource(value = "hello", fallback = "helloFallback")
+    @SentinelResource(value = "hello", fallback = "helloFallback", entryType = EntryType.IN)
     public String hello(long s) {
         if (s < 0) {
             throw new IllegalArgumentException("invalid arg");

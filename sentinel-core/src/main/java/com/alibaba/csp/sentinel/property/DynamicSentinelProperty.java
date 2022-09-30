@@ -22,6 +22,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 public class DynamicSentinelProperty<T> implements SentinelProperty<T> {
 
+    // 观察者
     protected Set<PropertyListener<T>> listeners = new CopyOnWriteArraySet<>();
     private T value = null;
 
@@ -44,20 +45,24 @@ public class DynamicSentinelProperty<T> implements SentinelProperty<T> {
         listeners.remove(listener);
     }
 
+    // 更新值
     @Override
     public boolean updateValue(T newValue) {
+        //如果两个值一样，则返回false，不修改
         if (isEqual(value, newValue)) {
             return false;
         }
         RecordLog.info("[DynamicSentinelProperty] Config will be updated to: {}", newValue);
 
         value = newValue;
+        //通知各个观察者
         for (PropertyListener<T> listener : listeners) {
             listener.configUpdate(newValue);
         }
         return true;
     }
 
+    //判断两个对象是否一致
     private boolean isEqual(T oldValue, T newValue) {
         if (oldValue == null && newValue == null) {
             return true;

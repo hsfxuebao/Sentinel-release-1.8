@@ -49,7 +49,9 @@ public class SystemStatusListener implements Runnable {
     @Override
     public void run() {
         try {
+            // Sentinel通过jdk：ManagementFactory类获取系统load、cpu等信息。
             OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+            // 获取当前系统load。
             currentLoad = osBean.getSystemLoadAverage();
 
             /*
@@ -60,16 +62,22 @@ public class SystemStatusListener implements Runnable {
              * observed. All values between 0.0 and 1.0 are possible depending of the activities going on in the
              * system. If the system recent cpu usage is not available, the method returns a negative value.
              */
+
+            // 获取当前系统cpu usage
             double systemCpuUsage = osBean.getSystemCpuLoad();
 
             // calculate process cpu usage to support application running in container environment
             RuntimeMXBean runtimeBean = ManagementFactory.getPlatformMXBean(RuntimeMXBean.class);
+            // 获取系统cpu运行时间
             long newProcessCpuTime = osBean.getProcessCpuTime();
+            // 获取当前jvm cpu运行时间
             long newProcessUpTime = runtimeBean.getUptime();
+            // 获取系统cpu核心数
             int cpuCores = osBean.getAvailableProcessors();
             long processCpuTimeDiffInMs = TimeUnit.NANOSECONDS
                     .toMillis(newProcessCpuTime - processCpuTime);
             long processUpTimeDiffInMs = newProcessUpTime - processUpTime;
+            // 计算CPU使用率
             double processCpuUsage = (double) processCpuTimeDiffInMs / processUpTimeDiffInMs / cpuCores;
             processCpuTime = newProcessCpuTime;
             processUpTime = newProcessUpTime;
