@@ -35,8 +35,11 @@ public class ResponseTimeCircuitBreaker extends AbstractCircuitBreaker {
 
     private static final double SLOW_REQUEST_RATIO_MAX_VALUE = 1.0d;
 
+    // 最大RT
     private final long maxAllowedRt;
+    // 最大 慢请求比例
     private final double maxSlowRequestRatio;
+    // 最小请求数量
     private final int minRequestAmount;
 
     private final LeapArray<SlowRequestCounter> slidingCounter;

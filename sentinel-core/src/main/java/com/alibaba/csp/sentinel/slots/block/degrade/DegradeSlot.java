@@ -65,11 +65,13 @@ public class DegradeSlot extends AbstractLinkedProcessorSlot<DefaultNode> {
 
     @Override
     public void exit(Context context, ResourceWrapper r, int count, Object... args) {
+        // 如果当前其他solt已经有了BlockException直接调用fireExit,不用继续走熔断逻辑了
         Entry curEntry = context.getCurEntry();
         if (curEntry.getBlockError() != null) {
             fireExit(context, r, count, args);
             return;
         }
+        // 通过资源名称获取所有的熔断CircuitBreaker
         List<CircuitBreaker> circuitBreakers = DegradeRuleManager.getCircuitBreakers(r.getName());
         if (circuitBreakers == null || circuitBreakers.isEmpty()) {
             fireExit(context, r, count, args);
@@ -78,6 +80,7 @@ public class DegradeSlot extends AbstractLinkedProcessorSlot<DefaultNode> {
 
         if (curEntry.getBlockError() == null) {
             // passed request
+            //调用CircuitBreaker的onRequestComplete()方法
             for (CircuitBreaker circuitBreaker : circuitBreakers) {
                 circuitBreaker.onRequestComplete(context);
             }

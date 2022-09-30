@@ -66,12 +66,14 @@ public class DegradeRule extends AbstractRule {
      *     <li>In exception count mode, it means exception count</li>
      * <ul/>
      */
+    //配置总数或比例
     private double count;
 
     /**
      * Recovery timeout (in seconds) when circuit breaker opens. After the timeout, the circuit breaker will
      * transform to half-open state for trying a few requests.
      */
+    //熔断时长
     private int timeWindow;
 
     /**
