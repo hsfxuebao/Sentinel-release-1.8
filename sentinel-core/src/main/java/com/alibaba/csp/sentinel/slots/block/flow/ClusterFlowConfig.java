@@ -31,12 +31,15 @@ public class ClusterFlowConfig {
     /**
      * Global unique ID.
      */
+    // （必需）全局唯一的规则 ID，由集群限流管控端分配
     private Long flowId;
 
     /**
      * Threshold type (average by local value or global value).
      */
+    // 阈值模式，默认（0）为单机均摊，1 为全局阈值.
     private int thresholdType = ClusterRuleConstant.FLOW_THRESHOLD_AVG_LOCAL;
+    // 在 client 连接失败或通信失败时，是否退化到本地的限流模式
     private boolean fallbackToLocalWhenFail = true;
 
     /**

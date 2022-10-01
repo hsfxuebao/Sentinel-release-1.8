@@ -42,6 +42,7 @@ import com.alibaba.csp.sentinel.util.StringUtil;
  * @author Eric Zhao
  * @since 1.4.0
  */
+// DefaultClusterTokenClient底层使用 netty 进行通信
 public class DefaultClusterTokenClient implements ClusterTokenClient {
 
     private ClusterTransportClient transportClient;
@@ -148,13 +149,16 @@ public class DefaultClusterTokenClient implements ClusterTokenClient {
 
     @Override
     public TokenResult requestToken(Long flowId, int acquireCount, boolean prioritized) {
+        //验证是否有效请求
         if (notValidRequest(flowId, acquireCount)) {
             return badRequest();
         }
+        //初始化FlowRequest
         FlowRequestData data = new FlowRequestData().setCount(acquireCount)
             .setFlowId(flowId).setPriority(prioritized);
         ClusterRequest<FlowRequestData> request = new ClusterRequest<>(ClusterConstants.MSG_TYPE_FLOW, data);
         try {
+            //发送请求到服务端
             TokenResult result = sendTokenRequest(request);
             logForResult(result);
             return result;

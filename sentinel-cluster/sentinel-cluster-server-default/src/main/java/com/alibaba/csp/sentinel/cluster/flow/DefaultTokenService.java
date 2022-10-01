@@ -35,17 +35,21 @@ import java.util.Collection;
 @Spi(isDefault = true)
 public class DefaultTokenService implements TokenService {
 
+    // //获取令牌
     @Override
     public TokenResult requestToken(Long ruleId, int acquireCount, boolean prioritized) {
+        // todo 判断是否是有效的请求
         if (notValidRequest(ruleId, acquireCount)) {
             return badRequest();
         }
         // The rule should be valid.
+        // 根据RuleId查询FlowRule
         FlowRule rule = ClusterFlowRuleManager.getFlowRuleById(ruleId);
         if (rule == null) {
             return new TokenResult(TokenResultStatus.NO_RULE_EXISTS);
         }
 
+        // todo 通过ClusterFlowChecker处理 token 获取请求
         return ClusterFlowChecker.acquireClusterToken(rule, acquireCount, prioritized);
     }
 
@@ -84,6 +88,7 @@ public class DefaultTokenService implements TokenService {
         ConcurrentClusterFlowChecker.releaseConcurrentToken(tokenId);
     }
 
+    // //判断是否是一个有效的请求
     private boolean notValidRequest(Long id, int count) {
         return id == null || id <= 0 || count <= 0;
     }

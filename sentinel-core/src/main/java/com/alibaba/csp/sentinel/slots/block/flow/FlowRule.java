@@ -98,6 +98,7 @@ public class FlowRule extends AbstractRule {
     /**
      * Flow rule config for cluster mode.
      */
+    // 集群限流相关配置项
     private ClusterFlowConfig clusterConfig;
 
     /**

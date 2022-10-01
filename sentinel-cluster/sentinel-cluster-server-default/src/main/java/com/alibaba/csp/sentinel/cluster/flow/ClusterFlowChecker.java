@@ -54,7 +54,7 @@ final class ClusterFlowChecker {
 
     static TokenResult acquireClusterToken(/*@Valid*/ FlowRule rule, int acquireCount, boolean prioritized) {
         Long id = rule.getClusterConfig().getFlowId();
-
+        // 是否继续，根据RuleId，获取NameSpace，根据nameSpace，判断nameSpace限流是否通过
         if (!allowProceed(id)) {
             return new TokenResult(TokenResultStatus.TOO_MANY_REQUEST);
         }
@@ -63,13 +63,18 @@ final class ClusterFlowChecker {
         if (metric == null) {
             return new TokenResult(TokenResultStatus.FAIL);
         }
-
+        // 获取Metric，滑动窗口实现，这里获取的是通过的请求平均值
+        // 根据限流的总数 - 已经发放token数 - 当前申请的 token 数
         double latestQps = metric.getAvg(ClusterFlowEvent.PASS);
+        //获取全局阀值 根据规则判断是否为全局限流还是平均分摊，并获取总的阀值
         double globalThreshold = calcGlobalThreshold(rule) * ClusterServerConfigManager.getExceedCount();
+        //判断剩余请求数
         double nextRemaining = globalThreshold - latestQps - acquireCount;
 
+        // 剩余 token 数大于0说明可以通过
         if (nextRemaining >= 0) {
             // TODO: checking logic and metric operation should be separated.
+            //记录请求数量
             metric.add(ClusterFlowEvent.PASS, acquireCount);
             metric.add(ClusterFlowEvent.PASS_REQUEST, 1);
             if (prioritized) {
@@ -97,6 +102,7 @@ final class ClusterFlowChecker {
                 }
             }
             // Blocked.
+            // 进行限流
             metric.add(ClusterFlowEvent.BLOCK, acquireCount);
             metric.add(ClusterFlowEvent.BLOCK_REQUEST, 1);
             ClusterServerStatLogUtil.log("flow|block|" + id, acquireCount);

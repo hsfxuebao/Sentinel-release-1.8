@@ -79,6 +79,7 @@
 
         <module>sentinel-demo</module>
         <module>sentinel-benchmark</module>
+        <module>sentinel-demo-cluster-my</module>
 
     </modules>
 

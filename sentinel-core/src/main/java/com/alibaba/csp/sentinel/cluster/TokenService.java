@@ -33,6 +33,7 @@ public interface TokenService {
      * @param prioritized whether the request is prioritized
      * @return result of the token request
      */
+    //获取令牌Token， 参数规则Id，获取令牌数，优先级
     TokenResult requestToken(Long ruleId, int acquireCount, boolean prioritized);
 
     /**

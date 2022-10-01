@@ -163,12 +163,16 @@ public class FlowRuleChecker {
     private static boolean passClusterCheck(FlowRule rule, Context context, DefaultNode node, int acquireCount,
                                             boolean prioritized) {
         try {
+            // 获取令牌服务
             TokenService clusterService = pickClusterService();
             if (clusterService == null) {
+                // 获取不到TokenService，降级为单机模式
                 return fallbackToLocalOrPass(rule, context, node, acquireCount, prioritized);
             }
             long flowId = rule.getClusterConfig().getFlowId();
+            // 由DefaultClusterTokenClient向 tokenServer 发送获取token 获取请求
             TokenResult result = clusterService.requestToken(flowId, acquireCount, prioritized);
+
             return applyTokenResult(result, rule, context, node, acquireCount, prioritized);
             // If client is absent, then fallback to local mode.
         } catch (Throwable ex) {
@@ -176,6 +180,7 @@ public class FlowRuleChecker {
         }
         // Fallback to local flow control when token client or server for this rule is not available.
         // If fallback is not enabled, then directly pass.
+        //如果失败，降级为单机模式
         return fallbackToLocalOrPass(rule, context, node, acquireCount, prioritized);
     }
 

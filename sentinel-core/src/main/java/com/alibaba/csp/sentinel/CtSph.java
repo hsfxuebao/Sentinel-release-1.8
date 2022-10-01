@@ -291,7 +291,7 @@ public class CtSph implements Sph {
         return entry(resource, 1, OBJECTS0);
     }
 
-    @OverrideDegradeSlot
+    @Override
     public Entry entry(Method method, EntryType type) throws BlockException {
         MethodResourceWrapper resource = new MethodResourceWrapper(method, type);
         return entry(resource, 1, OBJECTS0);
